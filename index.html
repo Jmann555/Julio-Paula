@@ -136,7 +136,7 @@
     </div>
     <div class="user-selector">
       <span class="vs-label">Usuario:</span>
-      <div class="user-btn active" id="userBtnJulio" onclick="setUser('julio')">
+      <div class="user-btn" id="userBtnJulio" onclick="setUser('julio')">
         <div class="pix" id="avHeaderJulio"></div><span>Julio</span>
       </div>
       <div class="user-btn" id="userBtnPaula" onclick="setUser('paula')">
@@ -192,7 +192,6 @@
       <div class="pix" id="avModal"></div>
       <span>Registrando como: <strong id="modalUserName"></strong></span>
     </div>
-    <!-- WORK FORM -->
     <div id="formWork">
       <div class="form-row">
         <div class="form-group"><label>Fecha</label><input type="date" id="wDate"></div>
@@ -205,7 +204,6 @@
       </div>
       <div class="form-group"><label>Notas (opcional)</label><textarea id="wNotes" rows="2" placeholder="Observaciones..."></textarea></div>
     </div>
-    <!-- PAYMENT FORM -->
     <div id="formPayment" style="display:none">
       <div class="form-row">
         <div class="form-group"><label>Fecha</label><input type="date" id="pDate"></div>
@@ -217,13 +215,11 @@
           <option value="">-- Selecciona babysitter --</option>
         </select>
       </div>
-      <!-- DEBT PREVIEW BOX -->
       <div class="debt-preview" id="debtPreview">
         <div class="debt-header" id="debtHeaderText">Deuda acumulada (todas las fechas)</div>
         <div class="debt-rows" id="debtRows"></div>
         <button class="btn-fill-debt" id="btnFillDebt" onclick="fillFullDebt()">Pagar deuda completa</button>
       </div>
-      <!-- Manual fields (only shown for single babysitter) -->
       <div id="manualPayFields">
         <div class="form-row">
           <div class="form-group"><label>Horas pagadas</label><input type="number" id="pHours" placeholder="0" min="0" step="0.5"></div>
@@ -241,53 +237,47 @@
 <script>
 // =========================================================
 //  8-BIT PIXEL ART
-//  JULIO = Link style (wider/stocky)  |  PAULA = Zelda style (slim)
 // =========================================================
 var N = null;
-
-// Link / Julio palette
 var lk='#181818',lg='#00A800',dg='#006000',sk='#F8C080',bh='#704018',mu='#4A2408',wl='#F8F8F8',bn='#602018',mo='#D06060';
-// Zelda / Paula palette
 var cg='#F8D000',cd='#C09000',cj='#FF4040',ph='#C49A6C',hd='#A07040',pg='#8030E0',wz='#F8F8F8',pk='#E050A0',dp='#B03070',mz='#D06878';
 
-// JULIO — Link, wider/stockier body
 var JULIO_PIX = [
-  [N,N,N,N,N,lk,lg,lk,N,N,N,N,N,N,N,N],         // 0  hat tip
-  [N,N,N,N,lk,lg,lg,lg,lk,N,N,N,N,N,N,N],        // 1  hat
-  [N,N,N,lk,lg,lg,lg,lg,lg,lk,N,N,N,N,N,N],      // 2  hat wide
-  [N,N,lk,lg,lg,bh,bh,lg,dg,lk,N,N,N,N,N,N],     // 3  brim + hair
-  [N,lk,bh,bh,sk,sk,sk,sk,sk,sk,lk,N,N,N,N,N],   // 4  wider forehead
-  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],   // 5  glasses top
-  [N,lk,sk,sk,lk,wl,sk,sk,lk,wl,lk,N,N,N,N,N],   // 6  eyes
-  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],   // 7  glasses bottom
-  [N,lk,sk,mu,mu,mu,sk,mu,mu,mu,sk,N,N,N,N,N],    // 8  wide moustache
-  [N,N,lk,sk,sk,mo,mo,mo,sk,lk,N,N,N,N,N,N],     // 9  mouth
-  [N,N,N,lk,dg,dg,dg,dg,dg,lk,N,N,N,N,N,N],      // 10 neck
-  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],  // 11 wide tunic
-  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],  // 12 wide tunic
-  [N,N,lk,bn,bn,bn,bn,bn,bn,bn,lk,N,N,N,N,N],    // 13 wide pants
-  [N,N,N,bn,bn,bn,N,N,bn,bn,bn,N,N,N,N,N],        // 14 wide boots
-  [N,N,N,lk,lk,lk,N,N,lk,lk,lk,N,N,N,N,N],       // 15 boot soles
+  [N,N,N,N,N,lk,lg,lk,N,N,N,N,N,N,N,N],
+  [N,N,N,N,lk,lg,lg,lg,lk,N,N,N,N,N,N,N],
+  [N,N,N,lk,lg,lg,lg,lg,lg,lk,N,N,N,N,N,N],
+  [N,N,lk,lg,lg,bh,bh,lg,dg,lk,N,N,N,N,N,N],
+  [N,lk,bh,bh,sk,sk,sk,sk,sk,sk,lk,N,N,N,N,N],
+  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],
+  [N,lk,sk,sk,lk,wl,sk,sk,lk,wl,lk,N,N,N,N,N],
+  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],
+  [N,lk,sk,mu,mu,mu,sk,mu,mu,mu,sk,N,N,N,N,N],
+  [N,N,lk,sk,sk,mo,mo,mo,sk,lk,N,N,N,N,N,N],
+  [N,N,N,lk,dg,dg,dg,dg,dg,lk,N,N,N,N,N,N],
+  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],
+  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],
+  [N,N,lk,bn,bn,bn,bn,bn,bn,bn,lk,N,N,N,N,N],
+  [N,N,N,bn,bn,bn,N,N,bn,bn,bn,N,N,N,N,N],
+  [N,N,N,lk,lk,lk,N,N,lk,lk,lk,N,N,N,N,N],
 ];
 
-// PAULA — Zelda, slim/elegant
 var PAULA_PIX = [
-  [N,N,N,N,lk,cg,cd,cj,cg,lk,N,N,N,N,N,N],      // 0  crown spikes + jewel
-  [N,N,N,lk,cg,cg,cg,cg,cg,cg,lk,N,N,N,N,N],    // 1  crown base
-  [N,N,N,ph,ph,ph,ph,ph,ph,ph,N,N,N,N,N,N],      // 2  hair top (7 wide)
-  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],      // 3  hair + forehead
-  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],      // 4  face
-  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],      // 5  purple glasses top
-  [N,N,N,ph,pg,wz,sk,pg,wz,ph,N,N,N,N,N,N],      // 6  eyes
-  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],      // 7  glasses bottom
-  [N,N,N,ph,sk,mz,mz,sk,sk,ph,N,N,N,N,N,N],      // 8  mouth
-  [N,N,N,ph,hd,sk,sk,sk,hd,ph,N,N,N,N,N,N],      // 9  chin
-  [N,N,ph,hd,ph,N,N,N,ph,hd,ph,N,N,N,N,N],       // 10 curly hair sides (not too wide)
-  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],      // 11 slim dress top
-  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],    // 12 dress
-  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],    // 13 dress
-  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],      // 14 dress lower (narrower)
-  [N,N,N,N,hd,hd,N,hd,hd,N,N,N,N,N,N,N],         // 15 hair tips
+  [N,N,N,N,lk,cg,cd,cj,cg,lk,N,N,N,N,N,N],
+  [N,N,N,lk,cg,cg,cg,cg,cg,cg,lk,N,N,N,N,N],
+  [N,N,N,ph,ph,ph,ph,ph,ph,ph,N,N,N,N,N,N],
+  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],
+  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],
+  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],
+  [N,N,N,ph,pg,wz,sk,pg,wz,ph,N,N,N,N,N,N],
+  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],
+  [N,N,N,ph,sk,mz,mz,sk,sk,ph,N,N,N,N,N,N],
+  [N,N,N,ph,hd,sk,sk,sk,hd,ph,N,N,N,N,N,N],
+  [N,N,ph,hd,ph,N,N,N,ph,hd,ph,N,N,N,N,N],
+  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],
+  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],
+  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],
+  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],
+  [N,N,N,N,hd,hd,N,hd,hd,N,N,N,N,N,N,N],
 ];
 
 function makeSVG(pix,s){
@@ -301,22 +291,73 @@ var AV={
 };
 
 // =========================================================
-//  DATA
+//  DATA (AHORA CONECTADO A FIREBASE)
 // =========================================================
 var SKEY='babysitter_cal_v3';
-function loadData(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{entries:[],settings:{}}; }catch(e){ return {entries:[],settings:{}}; } }
-function saveData(d){ localStorage.setItem(SKEY,JSON.stringify(d)); }
+
+function loadData(){ 
+  try{ return JSON.parse(localStorage.getItem(SKEY))||{entries:[],settings:{}}; }
+  catch(e){ return {entries:[],settings:{}}; } 
+}
+
+function saveData(d){ 
+  // Guardado local (Caché)
+  localStorage.setItem(SKEY,JSON.stringify(d)); 
+  // Guardado en la nube (Si la función de Firebase ya está cargada)
+  if(window.firebaseSaveData) {
+    window.firebaseSaveData(d);
+  }
+}
+
 function getData(){ return loadData(); }
-function getSettings(){ return Object.assign({hourlyRate:0,currentUser:'julio'},loadData().settings||{}); }
-function updateSettings(p){ var d=loadData(); d.settings=Object.assign(getSettings(),p); saveData(d); }
-function addEntry(e){ var d=getData(); e.id=Date.now()+Math.random().toString(36).slice(2); d.entries.push(e); saveData(d); }
-function deleteEntry(id){ var d=getData(); d.entries=d.entries.filter(function(e){ return e.id!==id; }); saveData(d); }
+function getSettings(){ return Object.assign({hourlyRate:0},loadData().settings||{}); }
+
+function updateSettings(p){ 
+  var d=loadData(); 
+  d.settings=Object.assign(getSettings(),p); 
+  saveData(d); 
+}
+
+function addEntry(e){ 
+  var d=getData(); 
+  e.id=Date.now()+Math.random().toString(36).slice(2); 
+  d.entries.push(e); 
+  saveData(d); 
+}
+
+function deleteEntry(id){ 
+  var d=getData(); 
+  d.entries=d.entries.filter(function(e){ return e.id!==id; }); 
+  saveData(d); 
+}
+
+// Esta función es llamada desde Firebase cuando detecta que el otro usuario hizo un cambio
+window.syncFromCloud = function(cloudData) {
+  if(!cloudData) return;
+  if(!cloudData.entries) cloudData.entries = [];
+  if(!cloudData.settings) cloudData.settings = {};
+
+  // Actualizar caché local silenciosamente
+  localStorage.setItem(SKEY, JSON.stringify(cloudData));
+
+  // Actualizar la tarifa visualmente SÓLO si no la estamos escribiendo en este momento
+  var rateInput = document.getElementById('hourlyRate');
+  if(cloudData.settings.hourlyRate !== undefined && document.activeElement !== rateInput) {
+      rateInput.value = cloudData.settings.hourlyRate;
+  }
+
+  // Refrescar toda la pantalla para mostrar los nuevos datos
+  renderCalendar();
+  if(selectedDate) renderDayPanel();
+};
 
 // =========================================================
 //  STATE
 // =========================================================
 var currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth();
-var selectedDate=null,modalMode='work',currentUser='julio';
+var selectedDate=null,modalMode='work';
+// IMPORTANTE: El usuario ahora es independiente en cada dispositivo
+var currentUser=localStorage.getItem('local_user') || 'julio'; 
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var DAYS=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
 
@@ -345,10 +386,11 @@ function getPending(baby,resp){
 }
 
 // =========================================================
-//  USER
+//  USER (Ahora se guarda independiente en cada dispositivo)
 // =========================================================
 function setUser(name){
-  currentUser=name; updateSettings({currentUser:name});
+  currentUser=name; 
+  localStorage.setItem('local_user', name);
   document.getElementById('userBtnJulio').classList.toggle('active',name==='julio');
   document.getElementById('userBtnPaula').classList.toggle('active',name==='paula');
 }
@@ -550,7 +592,7 @@ function renderWeeklySummary(){
 }
 
 // =========================================================
-//  DEBT PREVIEW — handles single babysitter OR "Todas"
+//  DEBT PREVIEW
 // =========================================================
 function updateDebtPreview(){
   var baby=document.getElementById('pBabysitter').value;
@@ -566,8 +608,7 @@ function updateDebtPreview(){
   var headerEl=document.getElementById('debtHeaderText');
 
   if(baby==='__all__'){
-    // Show debt for ALL babysitters
-    manualFields.style.display='none'; // hide manual fields — will auto-fill per babysitter
+    manualFields.style.display='none'; 
     headerEl.textContent='Deuda acumulada — Todas las babysitters';
     var bs=getUniqueBabysitters();
     var rowsHTML='', totalH=0, totalM=0, anyDebt=false;
@@ -584,7 +625,6 @@ function updateDebtPreview(){
     btn.textContent=anyDebt?'Pagar deuda completa de todas ('+fmtH(totalH)+')':'Sin deudas pendientes';
     box.className='debt-preview '+(anyDebt?'has-debt':'no-debt');
   } else {
-    // Single babysitter
     manualFields.style.display='block';
     headerEl.textContent='Deuda acumulada (todas las fechas)';
     var pendH=getPending(baby,resp||null);
@@ -601,7 +641,6 @@ function fillFullDebt(){
   var resp=document.getElementById('pResponsable').value.trim();
   var rate=getSettings().hourlyRate||0;
   if(baby==='__all__'){
-    // For "Todas", just mark that we'll auto-process on save
     if(!document.getElementById('pNotes').value) document.getElementById('pNotes').value='Pago deuda completa - Todas';
   } else {
     var pendH=getPending(baby,resp||null);
@@ -664,7 +703,6 @@ function saveEntry(){
     var rate=getSettings().hourlyRate||0;
 
     if(baby==='__all__'){
-      // Create individual payment entries for each babysitter with pending hours
       var bs=getUniqueBabysitters();
       var count=0;
       bs.forEach(function(b){
@@ -699,7 +737,13 @@ document.getElementById('prevMonth').onclick=function(){ if(currentMonth===0){ c
 document.getElementById('nextMonth').onclick=function(){ if(currentMonth===11){ currentMonth=0; currentYear++; } else currentMonth++; renderCalendar(); };
 document.getElementById('filterBabysitter').onchange=function(){ renderCalendar(); renderDayPanel(); };
 document.getElementById('filterResponsable').onchange=function(){ renderCalendar(); renderDayPanel(); };
-document.getElementById('hourlyRate').oninput=function(){ updateSettings({hourlyRate:parseFloat(this.value)||0}); renderMonthlySummary(); renderWeeklySummary(); if(selectedDate) renderDayPanel(); };
+
+document.getElementById('hourlyRate').oninput=function(){ 
+  updateSettings({hourlyRate:parseFloat(this.value)||0}); 
+  renderMonthlySummary(); 
+  renderWeeklySummary(); 
+  if(selectedDate) renderDayPanel(); 
+};
 document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
 
 // =========================================================
@@ -709,11 +753,58 @@ document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal
   document.getElementById('avHeaderJulio').innerHTML=AV.julio.hdr;
   document.getElementById('avHeaderPaula').innerHTML=AV.paula.hdr;
   var s=getSettings();
-  currentUser=s.currentUser||'julio';
   document.getElementById('hourlyRate').value=s.hourlyRate||'';
-  setUser(currentUser);
+  setUser(currentUser); // Usará el guardado en localStorage para recordar quién es el dueño del celular
   renderCalendar();
 })();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAS0JLt0qyfmq2oEqcWNzLM0xFs-MiSVU4",
+    authDomain: "calendariopagos-34915.firebaseapp.com",
+    databaseURL: "https://calendariopagos-34915-default-rtdb.firebaseio.com",
+    projectId: "calendariopagos-34915",
+    storageBucket: "calendariopagos-34915.firebasestorage.app",
+    messagingSenderId: "779954179392",
+    appId: "1:779954179392:web:7589bdaf5e576c3d9c3ea5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  
+  // Guardaremos todo bajo la carpeta "appData"
+  const dataRef = ref(db, 'appData');
+
+  // Función puente para enviar datos de tu código a Firebase
+  window.firebaseSaveData = function(data) {
+    set(dataRef, data).catch((error) => {
+        console.error("Error al guardar en Firebase:", error);
+    });
+  };
+
+  // Escuchar a Firebase 24/7
+  onValue(dataRef, (snapshot) => {
+    const cloudData = snapshot.val();
+    
+    if (cloudData) {
+      // Si la nube tiene datos (porque tu o PG guardaron algo), lo bajamos y pintamos
+      window.syncFromCloud(cloudData);
+    } else {
+      // Si la nube está vacía (la primera vez que lo corren), 
+      // y tú ya tenías datos guardados en tu compu, los subimos para no perderlos
+      const localDataStr = localStorage.getItem('babysitter_cal_v3');
+      if (localDataStr) {
+         const localData = JSON.parse(localDataStr);
+         if (localData && localData.entries && localData.entries.length > 0) {
+           window.firebaseSaveData(localData);
+         }
+      }
+    }
+  });
 </script>
 </body>
 </html>
