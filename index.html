@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario Babysitter</title>
+<style>
+  :root{--primary:#4f6ef7;--primary-dark:#3451d1;--success:#22c55e;--danger:#ef4444;--warning:#f59e0b;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827;--radius:8px;--shadow:0 2px 8px rgba(0,0,0,.10);--shadow-lg:0 8px 24px rgba(0,0,0,.13);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-100);color:var(--gray-900);min-height:100vh;}
+  .app-header{background:linear-gradient(135deg,#3a56d4,#4f6ef7 60%,#6f8bff);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 3px 12px rgba(63,93,220,.35);flex-wrap:wrap;}
+  .header-left h1{font-size:1.2rem;font-weight:800;}
+  .header-left .subtitle{font-size:.75rem;opacity:.75;margin-top:1px;}
+  .header-right{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .rate-setting{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;}
+  .rate-setting label{font-size:.75rem;font-weight:700;opacity:.85;white-space:nowrap;}
+  .rate-setting input{width:88px;border:1.5px solid rgba(255,255,255,.35);border-radius:6px;padding:4px 8px;font-size:.88rem;background:rgba(255,255,255,.18);color:#fff;outline:none;font-weight:700;}
+  .rate-setting input:focus{border-color:#fff;background:rgba(255,255,255,.28);}
+  .rate-setting input::placeholder{color:rgba(255,255,255,.4);font-weight:400;}
+  .rate-setting .currency{font-weight:800;font-size:.9rem;}
+  .user-selector{display:flex;align-items:center;gap:6px;}
+  .vs-label{font-size:.68rem;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
+  .user-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 10px;border-radius:10px;cursor:pointer;border:2.5px solid transparent;transition:all .18s;background:rgba(255,255,255,.1);}
+  .user-btn span{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.75);}
+  .user-btn.active{border-color:#fff;background:rgba(255,255,255,.22);box-shadow:0 0 12px rgba(255,255,255,.25);}
+  .user-btn.active span{color:#fff;}
+  .user-btn:hover:not(.active){background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);}
+  .pix{image-rendering:pixelated;line-height:0;display:block;}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;padding:20px 24px;max-width:1400px;margin:0 auto;}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+  .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;}
+  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .month-nav h2{font-size:1.1rem;font-weight:700;text-transform:capitalize;}
+  .btn-icon{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+  .btn-icon:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-header{text-align:center;font-size:.66rem;font-weight:700;text-transform:uppercase;color:var(--gray-400);padding:5px 2px;}
+  .cal-day{min-height:78px;border:1.5px solid var(--gray-200);border-radius:6px;padding:4px 5px;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;}
+  .cal-day:hover{border-color:var(--primary);background:#eef1ff;}
+  .cal-day.today{border-color:var(--primary);background:#eef1ff;}
+  .cal-day.selected{border-color:var(--primary);background:#dde3ff;box-shadow:0 0 0 2px var(--primary);}
+  .cal-day.other-month{opacity:.28;cursor:default;}
+  .cal-day.other-month:hover{border-color:var(--gray-200);background:transparent;}
+  .day-num{font-size:.76rem;font-weight:700;color:var(--gray-700);}
+  .cal-day.today .day-num{color:var(--primary);}
+  .day-entries-preview{margin-top:3px;display:flex;flex-direction:column;gap:2px;}
+  .entry-chip{font-size:.62rem;border-radius:3px;padding:1px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:flex;align-items:center;gap:3px;}
+  .chip-work{background:#dbeafe;color:#1d4ed8;}
+  .chip-payment{background:#dcfce7;color:#166534;}
+  .day-hours-badge{position:absolute;bottom:3px;right:4px;font-size:.62rem;font-weight:700;background:var(--primary);color:#fff;border-radius:10px;padding:1px 5px;}
+  .side-panel{display:flex;flex-direction:column;gap:16px;}
+  .panel-title{font-size:.92rem;font-weight:700;margin-bottom:12px;color:var(--gray-700);border-bottom:1px solid var(--gray-200);padding-bottom:8px;}
+  .entry-list{display:flex;flex-direction:column;gap:8px;max-height:285px;overflow-y:auto;}
+  .entry-item{border:1px solid var(--gray-200);border-radius:6px;padding:8px 10px;font-size:.82rem;position:relative;}
+  .entry-item.work{border-left:3px solid var(--primary);}
+  .entry-item.payment{border-left:3px solid var(--success);}
+  .entry-header-row{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+  .entry-label{font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;}
+  .entry-label.work{color:var(--primary);}
+  .entry-label.payment{color:var(--success);}
+  .entry-added-by{font-size:.68rem;color:var(--gray-400);margin-left:auto;display:flex;align-items:center;gap:3px;}
+  .entry-detail{color:var(--gray-600);}
+  .entry-hours{font-weight:700;color:var(--gray-900);}
+  .btn-del{position:absolute;top:5px;right:5px;background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:.95rem;padding:2px 5px;border-radius:4px;}
+  .btn-del:hover{background:#fee2e2;color:var(--danger);}
+  .no-entries{color:var(--gray-400);font-size:.82rem;text-align:center;padding:18px 0;}
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .summary-box{background:var(--gray-50);border-radius:6px;padding:10px 12px;text-align:center;}
+  .s-label{font-size:.67rem;text-transform:uppercase;color:var(--gray-400);font-weight:700;letter-spacing:.4px;}
+  .s-value{font-size:1.18rem;font-weight:800;color:var(--gray-900);margin-top:2px;}
+  .s-sub{font-size:.67rem;color:var(--gray-400);margin-top:1px;}
+  .s-value.green{color:var(--success);}.s-value.blue{color:var(--primary);}.s-value.red{color:var(--danger);}
+  .money-banner{background:linear-gradient(90deg,#eef1ff,#f0fdf4);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 14px;margin-top:10px;}
+  .money-row{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;padding:3px 0;}
+  .money-row .ml{color:var(--gray-600);}.money-row .mr{font-weight:700;}
+  .money-row.divider{border-top:1.5px dashed var(--gray-300);margin-top:4px;padding-top:7px;font-weight:700;}
+  .money-row.divider .ml{color:var(--gray-900);}
+  .week-table{width:100%;border-collapse:collapse;font-size:.79rem;margin-top:8px;}
+  .week-table th{text-align:left;color:var(--gray-400);font-weight:700;padding:4px 6px;border-bottom:1px solid var(--gray-200);}
+  .week-table td{padding:5px 6px;border-bottom:1px solid var(--gray-100);}
+  .week-table tr:last-child td{border-bottom:none;font-weight:700;background:var(--gray-50);}
+  .section-sub{font-size:.72rem;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.4px;margin:12px 0 6px;}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:.84rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;}
+  .btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+  .btn-success{background:var(--success);color:#fff;}.btn-success:hover{background:#16a34a;}
+  .btn-sm{padding:5px 10px;font-size:.77rem;}
+  .btn-secondary{background:var(--gray-100);color:var(--gray-700);border:1px solid var(--gray-300);}.btn-secondary:hover{background:var(--gray-200);}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:22px;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;}
+  .modal h3{font-size:1rem;font-weight:700;margin-bottom:12px;}
+  .modal-user-tag{display:flex;align-items:center;gap:8px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px;padding:6px 10px;margin-bottom:14px;font-size:.8rem;color:var(--gray-600);}
+  .modal-user-tag strong{color:var(--gray-900);}
+  .debt-preview{display:none;border-radius:8px;padding:10px 14px;margin-bottom:14px;}
+  .debt-preview.has-debt{display:block;background:linear-gradient(90deg,#fffbeb,#fff7f0);border:1.5px solid #fcd34d;}
+  .debt-preview.no-debt{display:block;background:#f0fdf4;border:1.5px solid #86efac;}
+  .debt-header{font-size:.73rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--gray-600);margin-bottom:6px;}
+  .debt-rows{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+  .debt-row{display:flex;justify-content:space-between;font-size:.78rem;}
+  .debt-row .dr-name{color:var(--gray-700);font-weight:600;}
+  .debt-row .dr-val{font-weight:700;color:var(--primary);}
+  .debt-total{display:flex;justify-content:space-between;font-size:.82rem;font-weight:800;padding-top:6px;border-top:1px dashed var(--gray-300);margin-top:4px;}
+  .debt-total .dt-label{color:var(--gray-900);}
+  .debt-total .dt-val{color:var(--danger);}
+  .btn-fill-debt{width:100%;padding:8px;font-size:.82rem;background:#f59e0b;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:700;transition:background .15s;}
+  .btn-fill-debt:hover:not(:disabled){background:#d97706;}
+  .btn-fill-debt:disabled{background:var(--gray-300);cursor:not-allowed;}
+  .form-group{margin-bottom:13px;}
+  .form-group label{display:block;font-size:.79rem;font-weight:600;color:var(--gray-600);margin-bottom:5px;}
+  .form-group input,.form-group select,.form-group textarea{width:100%;border:1.5px solid var(--gray-300);border-radius:6px;padding:8px 10px;font-size:.87rem;outline:none;transition:border-color .15s;font-family:inherit;background:#fff;}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);}
+  .form-group select option.all-option{font-weight:700;color:var(--warning);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+  .tab-bar{display:flex;gap:4px;margin-bottom:14px;}
+  .tab{padding:5px 13px;border-radius:6px;font-size:.78rem;font-weight:600;cursor:pointer;border:1.5px solid transparent;color:var(--gray-600);background:var(--gray-100);}
+  .tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .filter-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+  .filter-bar label{font-size:.78rem;font-weight:600;color:var(--gray-600);}
+  .filter-bar select{border:1.5px solid var(--gray-300);border-radius:6px;padding:5px 8px;font-size:.8rem;outline:none;background:#fff;}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:10px;}
+</style>
+</head>
+<body>
+<div class="app-header">
+  <div class="header-left">
+    <h1>&#128197; Calendario Babysitter</h1>
+    <div class="subtitle">Registro de horas y pagos</div>
+  </div>
+  <div class="header-right">
+    <div class="rate-setting">
+      <label>&#128176; Tarifa/hora:</label>
+      <input type="number" id="hourlyRate" placeholder="0" min="0" step="100">
+      <span class="currency">$/h</span>
+    </div>
+    <div class="user-selector">
+      <span class="vs-label">Usuario:</span>
+      <div class="user-btn active" id="userBtnJulio" onclick="setUser('julio')">
+        <div class="pix" id="avHeaderJulio"></div><span>Julio</span>
+      </div>
+      <div class="user-btn" id="userBtnPaula" onclick="setUser('paula')">
+        <div class="pix" id="avHeaderPaula"></div><span>Paula</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="layout">
+  <div>
+    <div class="card">
+      <div class="month-nav">
+        <button class="btn-icon" id="prevMonth">&#8249;</button>
+        <h2 id="monthTitle"></h2>
+        <button class="btn-icon" id="nextMonth">&#8250;</button>
+      </div>
+      <div class="filter-bar">
+        <label>Filtrar:</label>
+        <select id="filterBabysitter"><option value="">Todas las babysitters</option></select>
+        <select id="filterResponsable"><option value="">Todos los responsables</option></select>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+  <div class="side-panel">
+    <div class="card" id="dayPanel">
+      <div class="panel-title" id="dayPanelTitle">Selecciona un dia</div>
+      <div class="entry-list" id="entryList"><div class="no-entries">Haz clic en un dia del calendario</div></div>
+      <div class="btn-row" id="dayActions" style="display:none">
+        <button class="btn btn-primary btn-sm" onclick="openModal('work')">+ Turno</button>
+        <button class="btn btn-success btn-sm" onclick="openModal('payment')">$ Pago</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('monthly',this)">Mensual</div>
+        <div class="tab" onclick="switchTab('weekly',this)">Semanal</div>
+      </div>
+      <div id="tab-monthly">
+        <div class="summary-grid" id="monthlySummary"></div>
+        <div id="moneyBanner"></div>
+        <div class="section-sub" style="margin-top:14px">Por babysitter</div>
+        <div id="babysitterMonthTable"></div>
+      </div>
+      <div id="tab-weekly" style="display:none"><div id="weeklyTable"></div></div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h3 id="modalTitle">Agregar turno</h3>
+    <div class="modal-user-tag">
+      <div class="pix" id="avModal"></div>
+      <span>Registrando como: <strong id="modalUserName"></strong></span>
+    </div>
+    <!-- WORK FORM -->
+    <div id="formWork">
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="wDate"></div>
+        <div class="form-group"><label>Responsable</label><input type="text" id="wResponsable" placeholder="Ej: Maria" list="listResp" autocomplete="off"><datalist id="listResp"></datalist></div>
+      </div>
+      <div class="form-group"><label>Nombre babysitter</label><input type="text" id="wBabysitter" placeholder="Ej: Carla" list="listBaby" autocomplete="off"><datalist id="listBaby"></datalist></div>
+      <div class="form-row">
+        <div class="form-group"><label>Hora entrada</label><input type="time" id="wEntry"></div>
+        <div class="form-group"><label>Hora salida</label><input type="time" id="wExit"></div>
+      </div>
+      <div class="form-group"><label>Notas (opcional)</label><textarea id="wNotes" rows="2" placeholder="Observaciones..."></textarea></div>
+    </div>
+    <!-- PAYMENT FORM -->
+    <div id="formPayment" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="pDate"></div>
+        <div class="form-group"><label>Responsable que paga</label><input type="text" id="pResponsable" placeholder="Ej: Maria" list="listResp2" autocomplete="off" oninput="updateDebtPreview()"><datalist id="listResp2"></datalist></div>
+      </div>
+      <div class="form-group">
+        <label>Babysitter a pagar</label>
+        <select id="pBabysitter" onchange="updateDebtPreview()">
+          <option value="">-- Selecciona babysitter --</option>
+        </select>
+      </div>
+      <!-- DEBT PREVIEW BOX -->
+      <div class="debt-preview" id="debtPreview">
+        <div class="debt-header" id="debtHeaderText">Deuda acumulada (todas las fechas)</div>
+        <div class="debt-rows" id="debtRows"></div>
+        <button class="btn-fill-debt" id="btnFillDebt" onclick="fillFullDebt()">Pagar deuda completa</button>
+      </div>
+      <!-- Manual fields (only shown for single babysitter) -->
+      <div id="manualPayFields">
+        <div class="form-row">
+          <div class="form-group"><label>Horas pagadas</label><input type="number" id="pHours" placeholder="0" min="0" step="0.5"></div>
+          <div class="form-group"><label>Monto pagado ($)</label><input type="number" id="pAmount" placeholder="0" min="0"></div>
+        </div>
+      </div>
+      <div class="form-group"><label>Notas (opcional)</label><textarea id="pNotes" rows="2" placeholder="Ej: pago completo mes de abril"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEntry()">Guardar</button>
+    </div>
+  </div>
+</div>
+<script>
+// =========================================================
+//  8-BIT PIXEL ART
+//  JULIO = Link style (wider/stocky)  |  PAULA = Zelda style (slim)
+// =========================================================
+var N = null;
+
+// Link / Julio palette
+var lk='#181818',lg='#00A800',dg='#006000',sk='#F8C080',bh='#704018',mu='#4A2408',wl='#F8F8F8',bn='#602018',mo='#D06060';
+// Zelda / Paula palette
+var cg='#F8D000',cd='#C09000',cj='#FF4040',ph='#C49A6C',hd='#A07040',pg='#8030E0',wz='#F8F8F8',pk='#E050A0',dp='#B03070',mz='#D06878';
+
+// JULIO — Link, wider/stockier body
+var JULIO_PIX = [
+  [N,N,N,N,N,lk,lg,lk,N,N,N,N,N,N,N,N],         // 0  hat tip
+  [N,N,N,N,lk,lg,lg,lg,lk,N,N,N,N,N,N,N],        // 1  hat
+  [N,N,N,lk,lg,lg,lg,lg,lg,lk,N,N,N,N,N,N],      // 2  hat wide
+  [N,N,lk,lg,lg,bh,bh,lg,dg,lk,N,N,N,N,N,N],     // 3  brim + hair
+  [N,lk,bh,bh,sk,sk,sk,sk,sk,sk,lk,N,N,N,N,N],   // 4  wider forehead
+  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],   // 5  glasses top
+  [N,lk,sk,sk,lk,wl,sk,sk,lk,wl,lk,N,N,N,N,N],   // 6  eyes
+  [N,lk,sk,sk,lk,lk,sk,sk,lk,lk,lk,N,N,N,N,N],   // 7  glasses bottom
+  [N,lk,sk,mu,mu,mu,sk,mu,mu,mu,sk,N,N,N,N,N],    // 8  wide moustache
+  [N,N,lk,sk,sk,mo,mo,mo,sk,lk,N,N,N,N,N,N],     // 9  mouth
+  [N,N,N,lk,dg,dg,dg,dg,dg,lk,N,N,N,N,N,N],      // 10 neck
+  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],  // 11 wide tunic
+  [N,lk,dg,lg,lg,lg,lg,lg,lg,lg,dg,lk,N,N,N,N],  // 12 wide tunic
+  [N,N,lk,bn,bn,bn,bn,bn,bn,bn,lk,N,N,N,N,N],    // 13 wide pants
+  [N,N,N,bn,bn,bn,N,N,bn,bn,bn,N,N,N,N,N],        // 14 wide boots
+  [N,N,N,lk,lk,lk,N,N,lk,lk,lk,N,N,N,N,N],       // 15 boot soles
+];
+
+// PAULA — Zelda, slim/elegant
+var PAULA_PIX = [
+  [N,N,N,N,lk,cg,cd,cj,cg,lk,N,N,N,N,N,N],      // 0  crown spikes + jewel
+  [N,N,N,lk,cg,cg,cg,cg,cg,cg,lk,N,N,N,N,N],    // 1  crown base
+  [N,N,N,ph,ph,ph,ph,ph,ph,ph,N,N,N,N,N,N],      // 2  hair top (7 wide)
+  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],      // 3  hair + forehead
+  [N,N,N,ph,sk,sk,sk,sk,sk,ph,N,N,N,N,N,N],      // 4  face
+  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],      // 5  purple glasses top
+  [N,N,N,ph,pg,wz,sk,pg,wz,ph,N,N,N,N,N,N],      // 6  eyes
+  [N,N,N,ph,pg,pg,sk,pg,pg,ph,N,N,N,N,N,N],      // 7  glasses bottom
+  [N,N,N,ph,sk,mz,mz,sk,sk,ph,N,N,N,N,N,N],      // 8  mouth
+  [N,N,N,ph,hd,sk,sk,sk,hd,ph,N,N,N,N,N,N],      // 9  chin
+  [N,N,ph,hd,ph,N,N,N,ph,hd,ph,N,N,N,N,N],       // 10 curly hair sides (not too wide)
+  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],      // 11 slim dress top
+  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],    // 12 dress
+  [N,N,lk,dp,pk,pk,pk,pk,pk,dp,lk,N,N,N,N,N],    // 13 dress
+  [N,N,N,lk,dp,pk,pk,pk,dp,lk,N,N,N,N,N,N],      // 14 dress lower (narrower)
+  [N,N,N,N,hd,hd,N,hd,hd,N,N,N,N,N,N,N],         // 15 hair tips
+];
+
+function makeSVG(pix,s){
+  var r='<svg xmlns="http://www.w3.org/2000/svg" width="'+(16*s)+'" height="'+(16*s)+'" viewBox="0 0 '+(16*s)+' '+(16*s)+'" style="image-rendering:pixelated;display:block">';
+  pix.forEach(function(row,y){ row.forEach(function(c,x){ if(c) r+='<rect x="'+(x*s)+'" y="'+(y*s)+'" width="'+s+'" height="'+s+'" fill="'+c+'"/>'; }); });
+  return r+'</svg>';
+}
+var AV={
+  julio:{hdr:makeSVG(JULIO_PIX,3),mini:makeSVG(JULIO_PIX,1),sm:makeSVG(JULIO_PIX,2)},
+  paula:{hdr:makeSVG(PAULA_PIX,3),mini:makeSVG(PAULA_PIX,1),sm:makeSVG(PAULA_PIX,2)}
+};
+
+// =========================================================
+//  DATA
+// =========================================================
+var SKEY='babysitter_cal_v3';
+function loadData(){ try{ return JSON.parse(localStorage.getItem(SKEY))||{entries:[],settings:{}}; }catch(e){ return {entries:[],settings:{}}; } }
+function saveData(d){ localStorage.setItem(SKEY,JSON.stringify(d)); }
+function getData(){ return loadData(); }
+function getSettings(){ return Object.assign({hourlyRate:0,currentUser:'julio'},loadData().settings||{}); }
+function updateSettings(p){ var d=loadData(); d.settings=Object.assign(getSettings(),p); saveData(d); }
+function addEntry(e){ var d=getData(); e.id=Date.now()+Math.random().toString(36).slice(2); d.entries.push(e); saveData(d); }
+function deleteEntry(id){ var d=getData(); d.entries=d.entries.filter(function(e){ return e.id!==id; }); saveData(d); }
+
+// =========================================================
+//  STATE
+// =========================================================
+var currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth();
+var selectedDate=null,modalMode='work',currentUser='julio';
+var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DAYS=['Dom','Lun','Mar','Mie','Jue','Vie','Sab'];
+
+// =========================================================
+//  UTILS
+// =========================================================
+function calcH(a,b){ var ah=+a.split(':')[0],am=+a.split(':')[1],bh=+b.split(':')[0],bm=+b.split(':')[1]; var m=(bh*60+bm)-(ah*60+am); if(m<0)m+=1440; return +(m/60).toFixed(2); }
+function fmtH(h){ if(!h||h===0)return '0h'; var hrs=Math.floor(h),min=Math.round((h-hrs)*60); return min===0?hrs+'h':hrs+'h '+min+'m'; }
+function fmtM(n){ return '$'+Math.round(n).toLocaleString('es-CL'); }
+function fmtDate(d){ var p=d.split('-').map(Number); return p[2]+' '+['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][p[1]-1]+' '+p[0]; }
+function uName(u){ return u==='julio'?'Julio':'Paula'; }
+
+function getUniqueBabysitters(){
+  var d=getData(), seen={}, bs=[];
+  d.entries.forEach(function(e){ if(e.babysitter&&!seen[e.babysitter]){ seen[e.babysitter]=1; bs.push(e.babysitter); } });
+  return bs.sort();
+}
+
+function getPending(baby,resp){
+  var all=getData().entries;
+  var works=all.filter(function(e){ return e.type==='work'&&e.babysitter===baby&&(!resp||e.responsable===resp); });
+  var pays=all.filter(function(e){ return e.type==='payment'&&e.babysitter===baby&&(!resp||e.responsable===resp); });
+  var w=works.reduce(function(s,e){ return s+(e.hours||0); },0);
+  var p=pays.reduce(function(s,e){ return s+(e.paidHours||0); },0);
+  return Math.max(0,w-p);
+}
+
+// =========================================================
+//  USER
+// =========================================================
+function setUser(name){
+  currentUser=name; updateSettings({currentUser:name});
+  document.getElementById('userBtnJulio').classList.toggle('active',name==='julio');
+  document.getElementById('userBtnPaula').classList.toggle('active',name==='paula');
+}
+
+// =========================================================
+//  AUTOCOMPLETE
+// =========================================================
+function refreshAC(){
+  var d=getData(), seen={}, bs=[], rs=[], seenR={};
+  d.entries.forEach(function(e){ if(e.babysitter&&!seen[e.babysitter]){ seen[e.babysitter]=1; bs.push(e.babysitter); } if(e.responsable&&!seenR[e.responsable]){ seenR[e.responsable]=1; rs.push(e.responsable); } });
+  bs.sort(); rs.sort();
+  ['listBaby','listBaby2'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=bs.map(function(b){ return '<option value="'+b+'">'; }).join(''); });
+  ['listResp','listResp2'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=rs.map(function(r){ return '<option value="'+r+'">'; }).join(''); });
+  var fb=document.getElementById('filterBabysitter'),pB=fb.value;
+  fb.innerHTML='<option value="">Todas las babysitters</option>'+bs.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+  if(pB) fb.value=pB;
+  var fr=document.getElementById('filterResponsable'),pR=fr.value;
+  fr.innerHTML='<option value="">Todos los responsables</option>'+rs.map(function(r){ return '<option value="'+r+'">'+r+'</option>'; }).join('');
+  if(pR) fr.value=pR;
+}
+
+function populatePayBabysitterSelect(){
+  var bs=getUniqueBabysitters();
+  var sel=document.getElementById('pBabysitter');
+  sel.innerHTML='<option value="">-- Selecciona babysitter --</option>'
+    +'<option value="__all__">&#9733; Todas las babysitters</option>'
+    +bs.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+}
+
+// =========================================================
+//  CALENDAR
+// =========================================================
+function renderCalendar(){
+  refreshAC();
+  document.getElementById('monthTitle').textContent=MONTHS[currentMonth]+' '+currentYear;
+  var grid=document.getElementById('calGrid'); grid.innerHTML='';
+  DAYS.forEach(function(d){ var h=document.createElement('div'); h.className='cal-header'; h.textContent=d; grid.appendChild(h); });
+  var first=new Date(currentYear,currentMonth,1).getDay();
+  var dim=new Date(currentYear,currentMonth+1,0).getDate();
+  var pmd=new Date(currentYear,currentMonth,0).getDate();
+  var today=new Date().toISOString().split('T')[0];
+  var data=getData(),fb=document.getElementById('filterBabysitter').value,fr=document.getElementById('filterResponsable').value;
+  for(var i=first-1;i>=0;i--){
+    var pm=currentMonth===0?11:currentMonth-1,py=currentMonth===0?currentYear-1:currentYear;
+    var d=pmd-i,ds=py+'-'+('0'+(pm+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    grid.appendChild(makeCell(ds,d,true,data,today,fb,fr));
+  }
+  for(var d=1;d<=dim;d++){
+    var ds=currentYear+'-'+('0'+(currentMonth+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    grid.appendChild(makeCell(ds,d,false,data,today,fb,fr));
+  }
+  var total=first+dim,rem=total%7===0?0:7-total%7;
+  for(var d=1;d<=rem;d++){
+    var nm=currentMonth===11?0:currentMonth+1,ny=currentMonth===11?currentYear+1:currentYear;
+    var ds=ny+'-'+('0'+(nm+1)).slice(-2)+'-'+('0'+d).slice(-2);
+    grid.appendChild(makeCell(ds,d,true,data,today,fb,fr));
+  }
+  renderMonthlySummary(); renderWeeklySummary();
+}
+
+function makeCell(ds,dn,other,data,today,fb,fr){
+  var cell=document.createElement('div');
+  cell.className='cal-day'+(other?' other-month':'')+(ds===today?' today':'')+(ds===selectedDate?' selected':'');
+  var num=document.createElement('div'); num.className='day-num'; num.textContent=dn; cell.appendChild(num);
+  var entries=data.entries.filter(function(e){ return e.date===ds&&(!fb||e.babysitter===fb)&&(!fr||e.responsable===fr); });
+  var works=entries.filter(function(e){ return e.type==='work'; });
+  var pays=entries.filter(function(e){ return e.type==='payment'; });
+  var totH=works.reduce(function(s,e){ return s+(e.hours||0); },0);
+  var prev=document.createElement('div'); prev.className='day-entries-preview';
+  works.slice(0,2).concat(pays.slice(0,1)).forEach(function(e){
+    var chip=document.createElement('div');
+    chip.className='entry-chip '+(e.type==='work'?'chip-work':'chip-payment');
+    if(e.addedBy){ var av=document.createElement('span'); av.className='pix'; av.innerHTML=AV[e.addedBy].mini; chip.appendChild(av); }
+    var t=document.createElement('span');
+    t.textContent=e.type==='work'?(e.babysitter||'?')+' '+fmtH(e.hours||0):'$ '+(e.babysitter||'Todas');
+    chip.appendChild(t); prev.appendChild(chip);
+  });
+  cell.appendChild(prev);
+  if(totH>0){ var b=document.createElement('div'); b.className='day-hours-badge'; b.textContent=fmtH(totH); cell.appendChild(b); }
+  if(!other) cell.onclick=(function(s){ return function(){ selectDay(s); }; })(ds);
+  return cell;
+}
+
+// =========================================================
+//  DAY PANEL
+// =========================================================
+function selectDay(ds){ selectedDate=ds; renderCalendar(); renderDayPanel(); }
+
+function renderDayPanel(){
+  if(!selectedDate) return;
+  var data=getData(),fb=document.getElementById('filterBabysitter').value,fr=document.getElementById('filterResponsable').value;
+  var entries=data.entries.filter(function(e){ return e.date===selectedDate&&(!fb||e.babysitter===fb)&&(!fr||e.responsable===fr); });
+  document.getElementById('dayPanelTitle').textContent=fmtDate(selectedDate);
+  var list=document.getElementById('entryList'); list.innerHTML='';
+  if(!entries.length){ list.innerHTML='<div class="no-entries">Sin registros este dia</div>'; }
+  else {
+    var rate=getSettings().hourlyRate||0;
+    entries.forEach(function(e){
+      var item=document.createElement('div'); item.className='entry-item '+e.type;
+      var byHTML=e.addedBy?'<span class="entry-added-by"><span class="pix">'+AV[e.addedBy].sm+'</span>'+uName(e.addedBy)+'</span>':'';
+      if(e.type==='work'){
+        var moneyLine=rate>0?' <span style="color:var(--primary);font-weight:700">'+fmtM((e.hours||0)*rate)+'</span>':'';
+        item.innerHTML='<div class="entry-header-row"><span class="entry-label work">Turno</span>'+byHTML+'</div>'
+          +'<div class="entry-detail"><strong>'+(e.babysitter||'-')+'</strong> &mdash; Resp: '+(e.responsable||'-')+'<br>'
+          +e.entryHour+' &rarr; '+e.exitHour+' <span class="entry-hours">('+fmtH(e.hours||0)+')</span>'+moneyLine+'</div>'
+          +(e.notes?'<div class="entry-detail" style="margin-top:2px;font-style:italic;color:var(--gray-400)">'+e.notes+'</div>':'')
+          +'<button class="btn-del" onclick="removeEntry(\''+e.id+'\')">&#x2715;</button>';
+      } else {
+        var babyLabel=e.babysitter||'-';
+        item.innerHTML='<div class="entry-header-row"><span class="entry-label payment">Pago</span>'+byHTML+'</div>'
+          +'<div class="entry-detail"><strong>'+babyLabel+'</strong> &mdash; por '+(e.responsable||'-')+'<br>'
+          +(e.paidHours?fmtH(e.paidHours)+' pagadas':'')+(e.paidHours&&e.amount?' &middot; ':'')
+          +(e.amount?'<span style="color:var(--success);font-weight:700">'+fmtM(e.amount)+'</span>':'')+'</div>'
+          +(e.notes?'<div class="entry-detail" style="margin-top:2px;font-style:italic;color:var(--gray-400)">'+e.notes+'</div>':'')
+          +'<button class="btn-del" onclick="removeEntry(\''+e.id+'\')">&#x2715;</button>';
+      }
+      list.appendChild(item);
+    });
+  }
+  document.getElementById('dayActions').style.display='flex';
+}
+
+function removeEntry(id){ if(!confirm('Eliminar este registro?')) return; deleteEntry(id); renderCalendar(); renderDayPanel(); }
+
+// =========================================================
+//  SUMMARY
+// =========================================================
+function getMonthEntries(){
+  var d=getData(),fb=document.getElementById('filterBabysitter').value,fr=document.getElementById('filterResponsable').value;
+  var pfx=currentYear+'-'+('0'+(currentMonth+1)).slice(-2);
+  return d.entries.filter(function(e){ return e.date&&e.date.indexOf(pfx)===0&&(!fb||e.babysitter===fb)&&(!fr||e.responsable===fr); });
+}
+
+function renderMonthlySummary(){
+  var entries=getMonthEntries();
+  var works=entries.filter(function(e){ return e.type==='work'; });
+  var pays=entries.filter(function(e){ return e.type==='payment'; });
+  var totH=works.reduce(function(s,e){ return s+(e.hours||0); },0);
+  var paidH=pays.reduce(function(s,e){ return s+(e.paidHours||0); },0);
+  var paidM=pays.reduce(function(s,e){ return s+(e.amount||0); },0);
+  var days={};works.forEach(function(e){ days[e.date]=1; }); var dc=Object.keys(days).length;
+  var rate=getSettings().hourlyRate||0,owed=totH*rate,pendH=Math.max(0,totH-paidH);
+  document.getElementById('monthlySummary').innerHTML=
+    '<div class="summary-box"><div class="s-label">Horas trabajadas</div><div class="s-value blue">'+fmtH(totH)+'</div><div class="s-sub">'+dc+' dia'+(dc!==1?'s':'')+' con turno</div></div>'
+   +'<div class="summary-box"><div class="s-label">Horas pendientes</div><div class="s-value '+(pendH>0?'red':'green')+'">'+fmtH(pendH)+'</div><div class="s-sub">'+fmtH(paidH)+' pagadas</div></div>';
+  var mb=document.getElementById('moneyBanner');
+  if(rate>0){
+    var pend$=Math.max(0,owed-paidM);
+    mb.innerHTML='<div class="money-banner">'
+      +'<div class="money-row"><span class="ml">Total a pagar ('+fmtH(totH)+' x '+fmtM(rate)+'/h)</span><span class="mr" style="color:var(--primary)">'+fmtM(owed)+'</span></div>'
+      +'<div class="money-row"><span class="ml">Total pagado</span><span class="mr" style="color:var(--success)">'+fmtM(paidM)+'</span></div>'
+      +'<div class="money-row divider"><span class="ml">Pendiente de pago</span><span class="mr" style="color:'+(pend$>0?'var(--danger)':'var(--success)')+'">'+fmtM(pend$)+'</span></div>'
+      +'</div>';
+  } else {
+    mb.innerHTML='<div style="font-size:.73rem;color:var(--gray-400);margin-top:8px;text-align:center">Ingresa tarifa/hora arriba para ver montos en dinero</div>';
+  }
+  var byB={};
+  works.forEach(function(e){ var k=e.babysitter||'Sin nombre'; if(!byB[k]) byB[k]={w:0,p:0,m:0}; byB[k].w+=(e.hours||0); });
+  pays.forEach(function(e){ var k=e.babysitter||'Sin nombre'; if(!byB[k]) byB[k]={w:0,p:0,m:0}; byB[k].p+=(e.paidHours||0); byB[k].m+=(e.amount||0); });
+  var keys=Object.keys(byB),tbl=document.getElementById('babysitterMonthTable');
+  if(!keys.length){ tbl.innerHTML='<div class="no-entries">Sin datos este mes</div>'; return; }
+  var hasR=rate>0;
+  var html='<table class="week-table"><thead><tr><th>Babysitter</th><th>Trabajado</th><th>Pagado</th><th>'+(hasR?'Adeudado':'H.Pend.')+'</th></tr></thead><tbody>';
+  var tw=0,tp=0,tm=0;
+  keys.forEach(function(k){
+    var b=byB[k]; tw+=b.w; tp+=b.p; tm+=b.m;
+    var o$=hasR?Math.max(0,b.w*rate-b.m):0,pH=Math.max(0,b.w-b.p);
+    var clr=hasR?(o$>0?'var(--danger)':'var(--success)'):(pH>0?'var(--danger)':'var(--success)');
+    html+='<tr><td>'+k+'</td><td>'+fmtH(b.w)+(hasR?'<br><span style="font-size:.66rem;color:var(--gray-400)">'+fmtM(b.w*rate)+'</span>':'')+'</td>'
+      +'<td>'+fmtH(b.p)+(b.m>0?'<br><span style="font-size:.66rem;color:var(--success)">'+fmtM(b.m)+'</span>':'')+'</td>'
+      +'<td style="color:'+clr+'">'+(hasR?fmtM(o$):fmtH(pH))+'</td></tr>';
+  });
+  var to$=hasR?Math.max(0,tw*rate-tm):0,tpH=Math.max(0,tw-tp);
+  var tclr=hasR?(to$>0?'var(--danger)':'var(--success)'):(tpH>0?'var(--danger)':'var(--success)');
+  html+='<tr><td>Total</td><td>'+fmtH(tw)+'</td><td>'+fmtH(tp)+'</td><td style="color:'+tclr+'">'+(hasR?fmtM(to$):fmtH(tpH))+'</td></tr></tbody></table>';
+  tbl.innerHTML=html;
+}
+
+function renderWeeklySummary(){
+  var entries=getMonthEntries(),works=entries.filter(function(e){ return e.type==='work'; }),rate=getSettings().hourlyRate||0;
+  var byW={};
+  works.forEach(function(e){
+    var d=new Date(e.date+'T00:00:00'),day=d.getDay()===0?7:d.getDay();
+    var ws=new Date(d); ws.setDate(d.getDate()-(day-1));
+    var we=new Date(ws); we.setDate(ws.getDate()+6);
+    var key=ws.toISOString().split('T')[0];
+    var lbl=ws.getDate()+'/'+(ws.getMonth()+1)+' - '+we.getDate()+'/'+(we.getMonth()+1);
+    if(!byW[key]) byW[key]={lbl:lbl,h:0,days:{}};
+    byW[key].h+=(e.hours||0); byW[key].days[e.date]=1;
+  });
+  var c=document.getElementById('weeklyTable'),keys=Object.keys(byW).sort();
+  if(!keys.length){ c.innerHTML='<div class="no-entries">Sin datos este mes</div>'; return; }
+  var html='<table class="week-table"><thead><tr><th>Semana</th><th>Dias</th><th>Horas</th>'+(rate>0?'<th>Monto</th>':'')+'</tr></thead><tbody>';
+  var th=0,td=0;
+  keys.forEach(function(k){ var w=byW[k],dc=Object.keys(w.days).length; th+=w.h; td+=dc;
+    html+='<tr><td>'+w.lbl+'</td><td>'+dc+'</td><td>'+fmtH(w.h)+'</td>'+(rate>0?'<td style="color:var(--primary);font-weight:600">'+fmtM(w.h*rate)+'</td>':'')+'</tr>'; });
+  html+='<tr><td>Total mes</td><td>'+td+'</td><td>'+fmtH(th)+'</td>'+(rate>0?'<td style="color:var(--primary)">'+fmtM(th*rate)+'</td>':'')+'</tr></tbody></table>';
+  c.innerHTML=html;
+}
+
+// =========================================================
+//  DEBT PREVIEW — handles single babysitter OR "Todas"
+// =========================================================
+function updateDebtPreview(){
+  var baby=document.getElementById('pBabysitter').value;
+  var resp=document.getElementById('pResponsable').value.trim();
+  var box=document.getElementById('debtPreview');
+  var manualFields=document.getElementById('manualPayFields');
+
+  if(!baby){ box.className='debt-preview'; manualFields.style.display='block'; return; }
+
+  var rate=getSettings().hourlyRate||0;
+  var rowsEl=document.getElementById('debtRows');
+  var btn=document.getElementById('btnFillDebt');
+  var headerEl=document.getElementById('debtHeaderText');
+
+  if(baby==='__all__'){
+    // Show debt for ALL babysitters
+    manualFields.style.display='none'; // hide manual fields — will auto-fill per babysitter
+    headerEl.textContent='Deuda acumulada — Todas las babysitters';
+    var bs=getUniqueBabysitters();
+    var rowsHTML='', totalH=0, totalM=0, anyDebt=false;
+    bs.forEach(function(b){
+      var pendH=getPending(b,resp||null);
+      if(pendH>0){ anyDebt=true; }
+      totalH+=pendH; totalM+=pendH*rate;
+      rowsHTML+='<div class="debt-row"><span class="dr-name">'+b+'</span><span class="dr-val">'+fmtH(pendH)+(rate>0?' &middot; '+fmtM(pendH*rate):'')+'</span></div>';
+    });
+    if(!bs.length){ rowsHTML='<div style="font-size:.78rem;color:var(--gray-400)">No hay babysitters registradas</div>'; }
+    var totalRow='<div class="debt-total"><span class="dt-label">Total</span><span class="dt-val">'+fmtH(totalH)+(rate>0?' &middot; '+fmtM(totalM):'')+'</span></div>';
+    rowsEl.innerHTML=rowsHTML+totalRow;
+    btn.disabled=!anyDebt;
+    btn.textContent=anyDebt?'Pagar deuda completa de todas ('+fmtH(totalH)+')':'Sin deudas pendientes';
+    box.className='debt-preview '+(anyDebt?'has-debt':'no-debt');
+  } else {
+    // Single babysitter
+    manualFields.style.display='block';
+    headerEl.textContent='Deuda acumulada (todas las fechas)';
+    var pendH=getPending(baby,resp||null);
+    var pend$=pendH*rate;
+    rowsEl.innerHTML='<div class="debt-row"><span class="dr-name">'+baby+'</span><span class="dr-val">'+fmtH(pendH)+(rate>0?' &middot; '+fmtM(pend$):'')+'</span></div>';
+    btn.disabled=(pendH===0);
+    btn.textContent=pendH===0?'Sin deuda pendiente':'Pagar deuda completa ('+fmtH(pendH)+')';
+    box.className='debt-preview '+(pendH>0?'has-debt':'no-debt');
+  }
+}
+
+function fillFullDebt(){
+  var baby=document.getElementById('pBabysitter').value;
+  var resp=document.getElementById('pResponsable').value.trim();
+  var rate=getSettings().hourlyRate||0;
+  if(baby==='__all__'){
+    // For "Todas", just mark that we'll auto-process on save
+    if(!document.getElementById('pNotes').value) document.getElementById('pNotes').value='Pago deuda completa - Todas';
+  } else {
+    var pendH=getPending(baby,resp||null);
+    document.getElementById('pHours').value=pendH>0?pendH:'';
+    if(rate>0) document.getElementById('pAmount').value=Math.round(pendH*rate);
+    if(!document.getElementById('pNotes').value) document.getElementById('pNotes').value='Pago deuda completa';
+  }
+}
+
+// =========================================================
+//  MODAL
+// =========================================================
+function openModal(mode){
+  modalMode=mode;
+  document.getElementById('avModal').innerHTML=AV[currentUser].sm;
+  document.getElementById('modalUserName').textContent=uName(currentUser);
+  var fW=document.getElementById('formWork'),fP=document.getElementById('formPayment');
+  if(mode==='work'){
+    document.getElementById('modalTitle').textContent='Agregar turno';
+    fW.style.display='block'; fP.style.display='none';
+    document.getElementById('wDate').value=selectedDate||new Date().toISOString().split('T')[0];
+    ['wResponsable','wBabysitter','wNotes'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('wEntry').value=''; document.getElementById('wExit').value='';
+  } else {
+    document.getElementById('modalTitle').textContent='Registrar pago';
+    fW.style.display='none'; fP.style.display='block';
+    document.getElementById('pDate').value=selectedDate||new Date().toISOString().split('T')[0];
+    ['pResponsable','pNotes'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('pHours').value=''; document.getElementById('pAmount').value='';
+    document.getElementById('debtPreview').className='debt-preview';
+    document.getElementById('manualPayFields').style.display='block';
+    populatePayBabysitterSelect();
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+function closeModalOutside(e){ if(e.target===document.getElementById('overlay')) closeModal(); }
+
+function saveEntry(){
+  if(modalMode==='work'){
+    var date=document.getElementById('wDate').value;
+    var resp=document.getElementById('wResponsable').value.trim();
+    var baby=document.getElementById('wBabysitter').value.trim();
+    var entry=document.getElementById('wEntry').value;
+    var exit=document.getElementById('wExit').value;
+    var notes=document.getElementById('wNotes').value.trim();
+    if(!date||!entry||!exit){ alert('Completa fecha, hora entrada y hora salida.'); return; }
+    if(!baby){ alert('Ingresa el nombre de la babysitter.'); return; }
+    var hours=calcH(entry,exit);
+    if(hours<=0){ alert('La hora de salida debe ser posterior a la entrada.'); return; }
+    addEntry({type:'work',date:date,responsable:resp,babysitter:baby,entryHour:entry,exitHour:exit,hours:hours,notes:notes,addedBy:currentUser});
+    if(!selectedDate) selectedDate=date;
+  } else {
+    var date=document.getElementById('pDate').value;
+    var resp=document.getElementById('pResponsable').value.trim();
+    var baby=document.getElementById('pBabysitter').value;
+    var notes=document.getElementById('pNotes').value.trim();
+    if(!date){ alert('Ingresa la fecha.'); return; }
+    if(!baby){ alert('Selecciona una babysitter.'); return; }
+    var rate=getSettings().hourlyRate||0;
+
+    if(baby==='__all__'){
+      // Create individual payment entries for each babysitter with pending hours
+      var bs=getUniqueBabysitters();
+      var count=0;
+      bs.forEach(function(b){
+        var pendH=getPending(b,resp||null);
+        if(pendH>0){
+          addEntry({type:'payment',date:date,responsable:resp,babysitter:b,paidHours:pendH,amount:rate>0?Math.round(pendH*rate):0,notes:notes||'Pago deuda completa',addedBy:currentUser});
+          count++;
+        }
+      });
+      if(count===0){ alert('No hay deudas pendientes para ninguna babysitter.'); return; }
+      if(!selectedDate) selectedDate=date;
+    } else {
+      var paidH=parseFloat(document.getElementById('pHours').value)||0;
+      var amt=parseFloat(document.getElementById('pAmount').value)||0;
+      if(!paidH&&!amt){ alert('Ingresa las horas pagadas o el monto.'); return; }
+      addEntry({type:'payment',date:date,responsable:resp,babysitter:baby,paidHours:paidH,amount:amt,notes:notes,addedBy:currentUser});
+      if(!selectedDate) selectedDate=date;
+    }
+  }
+  closeModal(); renderCalendar(); renderDayPanel();
+}
+
+// =========================================================
+//  TABS + EVENTS
+// =========================================================
+function switchTab(tab,el){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); }); el.classList.add('active');
+  document.getElementById('tab-monthly').style.display=tab==='monthly'?'block':'none';
+  document.getElementById('tab-weekly').style.display=tab==='weekly'?'block':'none';
+}
+document.getElementById('prevMonth').onclick=function(){ if(currentMonth===0){ currentMonth=11; currentYear--; } else currentMonth--; renderCalendar(); };
+document.getElementById('nextMonth').onclick=function(){ if(currentMonth===11){ currentMonth=0; currentYear++; } else currentMonth++; renderCalendar(); };
+document.getElementById('filterBabysitter').onchange=function(){ renderCalendar(); renderDayPanel(); };
+document.getElementById('filterResponsable').onchange=function(){ renderCalendar(); renderDayPanel(); };
+document.getElementById('hourlyRate').oninput=function(){ updateSettings({hourlyRate:parseFloat(this.value)||0}); renderMonthlySummary(); renderWeeklySummary(); if(selectedDate) renderDayPanel(); };
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModal(); });
+
+// =========================================================
+//  INIT
+// =========================================================
+(function(){
+  document.getElementById('avHeaderJulio').innerHTML=AV.julio.hdr;
+  document.getElementById('avHeaderPaula').innerHTML=AV.paula.hdr;
+  var s=getSettings();
+  currentUser=s.currentUser||'julio';
+  document.getElementById('hourlyRate').value=s.hourlyRate||'';
+  setUser(currentUser);
+  renderCalendar();
+})();
+</script>
+</body>
+</html>
